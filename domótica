@@ -1,5 +1,5 @@
 #include <LiquidCrystal.h>
-  
+//Inicializando variables y pines  
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7); 
 
 const int pin3 = 3;
@@ -21,16 +21,17 @@ int control_deshumidificador = 1;
 int control_ruido = 1;
 
 void setup(){  
+  	//Setup lcd de 16 columnas, 2 filas
     lcd.begin(16,2); 
     lcd.setCursor(0,0); 
     lcd.print("PRESIONA UNA TECLA");   
-
+	//Setup de los pines analógicos como input
     pinMode(A0, INPUT);
     pinMode(A1, INPUT);
     pinMode(A2, INPUT);
     pinMode(A3, INPUT);
     pinMode(A4, INPUT);
-    
+    //Setup de los pines digitales como output
   	pinMode(pin3, OUTPUT);
     pinMode(pin11, OUTPUT);
     pinMode(pin12, OUTPUT);
@@ -40,13 +41,19 @@ void setup(){
 }  
   
 void loop(){  
+  	//Set el cursor inicial en el led a columna 0, fila 1
     lcd.setCursor(0,1); 
+  	//Calcula los valores de temperatura, ruido, botones y humedad
+  	//Con base en lectura de los pines analógicos
     b1 = int((float(analogRead(A1))*1/(1))/1);
     temperatura = ((b1^2)*0.01)+(0.18 * b1);
     ruido = analogRead(A3);
     botones = analogRead(A0);
   	humedad = analogRead(A4);
-
+	
+  	//Permite desactivar o activar sistemas separados o globales
+  	//Si el botón global es presionado se desactivan todos los sistemas
+  	//Si los botones individuales son presionados se desactiva solo ese sistema
     if (botones < 60) { 
         if(control==1){
             control=0;
@@ -105,9 +112,12 @@ void loop(){
             lcd.print("Bocinas Activadas");
         }
     }  
-
+	
+  	//Mientras el sistema global esté activo procede a verificar los controles individuales
     if (control == 1){  
         if (control_aire == 1){
+          	//Si el control del AC está activo, verifica si la temperatura es mayor a 30°
+          	//Si es mayor a 30° enciende el AC, de lo contrario lo apaga.
             if (temperatura > 30)  
             {
             digitalWrite(pin11, HIGH); 
@@ -124,6 +134,8 @@ void loop(){
         }
         
         if (control_luz == 1){
+          	//Si el control de las lámparas está activo, verifica si la luz es muy baja
+          	//Si la luz ambiental es baja, enciende la lámpara, de lo contrario la apaga.
             int analogValue1 = analogRead(A2);
             if (analogValue1 < 100)
             {
@@ -140,7 +152,8 @@ void loop(){
         }
       
       	if (control_deshumidificador == 1){
-          	Serial.println(analogRead(A4));
+          	//Si el control del deshumidificador está activo, verifica si la humedad es mayor al 50%
+          	//Si es mayor al 50% enciende el deshumidificador, de lo contrario lo apaga.
             if (humedad > 488)
             {
               digitalWrite(pin3, HIGH); 
@@ -157,6 +170,9 @@ void loop(){
       	}
         
         if (control_ruido == 1){
+          	//Si el control del ruido está activo, verifica si el ruido es muy alto.
+          	//El sensor de ruido está simulado con un potenciómetro
+          	//Si es mayor a la mitad del potenciómetro (arriba de 80dB), de lo contrario lo apaga.
             if (ruido > 511)
             {
             digitalWrite(pin13, HIGH); 
@@ -172,5 +188,6 @@ void loop(){
             }
         }
     }
+  	//Espera 250 ms para volver a repetir el loop
     delay(250);
 }
